@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "useful-hoe",
+	"version": "${version}",
+	"name": "Useful Hoe",
+	"description": "Server-side area farming - tilling, planting, bonemealing, and harvesting. Works with vanilla clients.",
+	"authors": ["justfatlard"],
+	"contact": {},
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"main": ["com.justfatlard.usefulhoe.UsefulHoe"]
+	},
+	"depends": {
+		"fabricloader": ">=0.16.0",
+		"fabric-api": "*",
+		"minecraft": ">=1.21"
+	}
+}
