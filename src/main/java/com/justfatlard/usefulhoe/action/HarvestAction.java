@@ -18,16 +18,11 @@ import net.minecraft.world.World;
 
 import java.util.List;
 
-/**
- * Handles harvesting mature crops with auto-replanting.
- */
 public final class HarvestAction {
 
 	private HarvestAction() {}
 
-	/**
-	 * Checks if a position has a harvestable crop (either at the position or above it).
-	 */
+	/** Checks pos and pos.up() for mature crops, plus vertical crops. */
 	public static boolean canHarvest(World world, BlockPos pos) {
 		BlockState state = world.getBlockState(pos);
 
@@ -47,13 +42,6 @@ public final class HarvestAction {
 		return CropHelper.isMatureCrop(aboveState);
 	}
 
-	/**
-	 * Harvests a mature crop and optionally replants.
-	 * Handles crops, sweet berry bushes, and vertical crops.
-	 * @param pos The clicked position
-	 * @param offHand Seeds from player's off-hand for replanting
-	 * @return true if harvesting was successful
-	 */
 	public static boolean execute(World world, BlockPos pos, PlayerEntity player, ItemStack offHand) {
 		BlockState state = world.getBlockState(pos);
 
@@ -71,9 +59,6 @@ public final class HarvestAction {
 		return harvestCrop(world, pos, player, offHand);
 	}
 
-	/**
-	 * Harvests sweet berries without breaking the bush.
-	 */
 	private static boolean harvestBerries(World world, BlockPos pos, PlayerEntity player) {
 		BlockState state = world.getBlockState(pos);
 		int age = state.get(SweetBerryBushBlock.AGE);
@@ -94,9 +79,7 @@ public final class HarvestAction {
 		return true;
 	}
 
-	/**
-	 * Harvests vertical crops (breaks all blocks above base).
-	 */
+	/** Breaks all blocks above base, keeps the base block. */
 	private static boolean harvestVertical(World world, BlockPos pos, PlayerEntity player) {
 		// Start harvesting from one block above (keep the base)
 		BlockPos harvestPos = pos.up();
@@ -121,9 +104,7 @@ public final class HarvestAction {
 		return harvested > 0;
 	}
 
-	/**
-	 * Harvests a regular crop with auto-replanting.
-	 */
+	/** Replants using off-hand seeds if available, otherwise uses a seed from drops. */
 	private static boolean harvestCrop(World world, BlockPos pos, PlayerEntity player, ItemStack offHand) {
 		// Determine actual crop position
 		BlockPos cropPos;

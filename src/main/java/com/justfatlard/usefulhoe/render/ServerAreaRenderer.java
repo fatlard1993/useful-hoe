@@ -1,16 +1,13 @@
 package com.justfatlard.usefulhoe.render;
 
 import com.justfatlard.usefulhoe.UsefulHoe;
+import com.justfatlard.usefulhoe.config.ModConfig;
 import com.justfatlard.usefulhoe.action.HoeAction;
-import com.justfatlard.usefulhoe.action.BonemealAction;
-import com.justfatlard.usefulhoe.action.HarvestAction;
-import com.justfatlard.usefulhoe.action.PlantAction;
-import com.justfatlard.usefulhoe.action.TillAction;
+import com.justfatlard.usefulhoe.action.HoeActionHandler;
 import com.justfatlard.usefulhoe.hoe.HoeAreaCalculator;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.HoeItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.particle.DustParticleEffect;
@@ -32,7 +29,6 @@ import java.util.List;
  */
 public final class ServerAreaRenderer {
 
-	private static final int TICK_INTERVAL = 4;
 	private static int tickCounter = 0;
 
 	// Particle colors as ARGB integers
@@ -48,8 +44,11 @@ public final class ServerAreaRenderer {
 	 */
 	public static void register() {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
+			ModConfig config = ModConfig.get();
+			if (!config.particlePreviewEnabled) return;
+
 			tickCounter++;
-			if (tickCounter < TICK_INTERVAL) return;
+			if (tickCounter < config.particleTickInterval) return;
 			tickCounter = 0;
 
 			for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
@@ -88,7 +87,7 @@ public final class ServerAreaRenderer {
 		BlockState targetState = world.getBlockState(targetPos);
 
 		// Only show preview for hoe-relevant blocks
-		if (!isHoeRelevantBlock(world, targetPos, targetState)) {
+		if (!HoeActionHandler.isHoeRelevantBlock(world, targetPos, targetState)) {
 			return;
 		}
 
@@ -97,26 +96,12 @@ public final class ServerAreaRenderer {
 			targetPos, player, mainHand, world
 		);
 
-		// Check if any action is possible
+		// Spawn particles for each actionable position
 		ItemStack offHand = player.getOffHandStack();
-		boolean hasAnyAction = false;
 		for (BlockPos pos : positions) {
-			if (getFirstApplicableAction(world, pos, offHand) != null) {
-				hasAnyAction = true;
-				break;
-			}
-		}
-
-		if (!hasAnyAction) {
-			return;
-		}
-
-		// Spawn particles for each position
-		for (BlockPos pos : positions) {
-			HoeAction action = getFirstApplicableAction(world, pos, offHand);
+			HoeAction action = HoeActionHandler.getFirstApplicableAction(world, pos, offHand);
 			if (action != null) {
-				int color = getColorForAction(action);
-				spawnCornerParticles(world, player, pos, color);
+				spawnCornerParticles(world, player, pos, getColorForAction(action));
 			}
 		}
 	}
@@ -137,38 +122,6 @@ public final class ServerAreaRenderer {
 			RaycastContext.FluidHandling.NONE,
 			player
 		));
-	}
-
-	/**
-	 * Checks if a block is hoe-relevant.
-	 */
-	private static boolean isHoeRelevantBlock(World world, BlockPos pos, BlockState state) {
-		if (TillAction.canTill(world, pos, state)) return true;
-		if (PlantAction.canPlant(world, pos, state)) return true;
-		if (HarvestAction.canHarvest(world, pos)) return true;
-		if (BonemealAction.canBonemealCrop(world, pos)) return true;
-		return false;
-	}
-
-	/**
-	 * Gets the first applicable action for a position.
-	 */
-	private static HoeAction getFirstApplicableAction(World world, BlockPos pos, ItemStack offHand) {
-		BlockState state = world.getBlockState(pos);
-
-		if (TillAction.canTill(world, pos, state)) {
-			return HoeAction.TILL;
-		}
-		if (PlantAction.isPlantableSeed(offHand) && PlantAction.canPlant(world, pos, state)) {
-			return HoeAction.PLANT;
-		}
-		if (BonemealAction.isBonemeal(offHand) && BonemealAction.canBonemealCrop(world, pos)) {
-			return HoeAction.BONEMEAL;
-		}
-		if (HarvestAction.canHarvest(world, pos)) {
-			return HoeAction.HARVEST;
-		}
-		return null;
 	}
 
 	/**

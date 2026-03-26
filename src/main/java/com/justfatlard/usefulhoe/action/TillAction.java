@@ -11,9 +11,6 @@ import net.minecraft.world.World;
 
 import java.util.Map;
 
-/**
- * Handles tilling dirt/grass into farmland.
- */
 public final class TillAction {
 
 	private static final Map<Block, BlockState> TILLABLE = Map.of(
@@ -26,9 +23,6 @@ public final class TillAction {
 
 	private TillAction() {}
 
-	/**
-	 * Checks if a block can be tilled.
-	 */
 	public static boolean canTill(World world, BlockPos pos, BlockState state) {
 		if (!TILLABLE.containsKey(state.getBlock())) {
 			return false;
@@ -39,10 +33,6 @@ public final class TillAction {
 		return above.isAir() || above.isReplaceable();
 	}
 
-	/**
-	 * Tills a block at the given position.
-	 * @return true if tilling was successful
-	 */
 	public static boolean execute(World world, BlockPos pos, PlayerEntity player) {
 		BlockState state = world.getBlockState(pos);
 

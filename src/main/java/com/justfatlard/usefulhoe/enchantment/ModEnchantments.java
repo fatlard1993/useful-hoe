@@ -23,13 +23,6 @@ public final class ModEnchantments {
 	private ModEnchantments() {}
 
 	/**
-	 * Called during mod init to ensure class loading.
-	 */
-	public static void initialize() {
-		// Enchantment is data-driven, no registration needed
-	}
-
-	/**
 	 * Gets the reach enchantment level from an item stack.
 	 * @return The enchantment level, or 0 if not enchanted
 	 */
@@ -42,12 +35,12 @@ public final class ModEnchantments {
 
 			if (entryOptional.isEmpty()) return 0;
 
-			// getOptional returns Optional<Reference<T>> which IS a RegistryEntry
 			RegistryEntry<Enchantment> entry = entryOptional.get();
 			ItemEnchantmentsComponent enchantments = stack.getEnchantments();
 
 			return enchantments.getLevel(entry);
 		} catch (Exception e) {
+			UsefulHoe.LOGGER.warn("Failed to read Reach enchantment level", e);
 			return 0;
 		}
 	}

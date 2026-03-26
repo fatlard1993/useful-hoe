@@ -1,5 +1,5 @@
 {
-	"description": "Reach",
+	"description": {"translate": "enchantment.useful-hoe.reach"},
 	"exclusive_set": [],
 	"supported_items": "#minecraft:hoes",
 	"primary_items": "#minecraft:hoes",

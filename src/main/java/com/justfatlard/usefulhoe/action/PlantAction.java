@@ -12,17 +12,11 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-/**
- * Handles planting crops from off-hand seeds.
- */
 public final class PlantAction {
 
 	private PlantAction() {}
 
-	/**
-	 * Checks if a position can have a crop planted.
-	 * Handles clicking on farmland directly or on air/crop above farmland.
-	 */
+	/** Handles clicking on farmland directly or on air above farmland. */
 	public static boolean canPlant(World world, BlockPos pos, BlockState state) {
 		// Check if clicked position is farmland/soul sand with empty space above
 		if (state.isOf(Blocks.FARMLAND) || state.isOf(Blocks.SOUL_SAND)) {
@@ -40,9 +34,6 @@ public final class PlantAction {
 		return false;
 	}
 
-	/**
-	 * Gets the actual farmland position for planting.
-	 */
 	public static BlockPos getFarmlandPos(World world, BlockPos pos) {
 		BlockState state = world.getBlockState(pos);
 		if (state.isOf(Blocks.FARMLAND) || state.isOf(Blocks.SOUL_SAND)) {
@@ -51,11 +42,6 @@ public final class PlantAction {
 		return pos.down();
 	}
 
-	/**
-	 * Plants a crop at the given position using seeds from off-hand.
-	 * Handles clicking on farmland directly or on air above farmland.
-	 * @return true if planting was successful
-	 */
 	public static boolean execute(World world, BlockPos pos, PlayerEntity player, ItemStack seedStack) {
 		if (seedStack.isEmpty()) {
 			return false;
@@ -105,9 +91,6 @@ public final class PlantAction {
 		return true;
 	}
 
-	/**
-	 * Checks if an item stack contains plantable seeds.
-	 */
 	public static boolean isPlantableSeed(ItemStack stack) {
 		if (stack.isEmpty()) return false;
 		if (!(stack.getItem() instanceof BlockItem blockItem)) return false;

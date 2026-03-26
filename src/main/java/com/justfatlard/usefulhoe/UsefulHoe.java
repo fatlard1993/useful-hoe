@@ -1,7 +1,7 @@
 package com.justfatlard.usefulhoe;
 
 import com.justfatlard.usefulhoe.action.HoeActionHandler;
-import com.justfatlard.usefulhoe.enchantment.ModEnchantments;
+import com.justfatlard.usefulhoe.config.ModConfig;
 import com.justfatlard.usefulhoe.render.ServerAreaRenderer;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
@@ -22,8 +22,7 @@ public class UsefulHoe implements ModInitializer {
 	public void onInitialize() {
 		LOGGER.info("Initializing Useful Hoe (server-side)");
 
-		// Initialize enchantments
-		ModEnchantments.initialize();
+		ModConfig.get();
 
 		// Register block use callback for hoe actions
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) ->

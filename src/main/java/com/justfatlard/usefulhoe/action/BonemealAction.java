@@ -12,16 +12,11 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-/**
- * Handles applying bone meal to fertilizable blocks.
- */
 public final class BonemealAction {
 
 	private BonemealAction() {}
 
-	/**
-	 * Checks if bone meal can be applied at this position.
-	 */
+	/** Checks the exact position only. See canBonemealCrop() for pos + pos.up(). */
 	public static boolean canBonemeal(World world, BlockPos pos) {
 		BlockState state = world.getBlockState(pos);
 
@@ -33,13 +28,6 @@ public final class BonemealAction {
 		return fertilizable.isFertilizable(world, pos, state);
 	}
 
-	/**
-	 * Applies bone meal to a block.
-	 * Handles both clicking on the crop directly or on farmland below.
-	 * @param pos The clicked position
-	 * @param bonemealStack The bone meal item stack from off-hand
-	 * @return true if bone meal was applied
-	 */
 	public static boolean execute(World world, BlockPos pos, PlayerEntity player, ItemStack bonemealStack) {
 		if (bonemealStack.isEmpty() || !isBonemeal(bonemealStack)) {
 			return false;
@@ -84,16 +72,11 @@ public final class BonemealAction {
 		return false;
 	}
 
-	/**
-	 * Checks if an item stack is bone meal.
-	 */
 	public static boolean isBonemeal(ItemStack stack) {
 		return !stack.isEmpty() && stack.isOf(Items.BONE_MEAL);
 	}
 
-	/**
-	 * Checks if bone meal can be applied at this position or the crop above.
-	 */
+	/** Checks both pos and pos.up() for fertilizable blocks. */
 	public static boolean canBonemealCrop(World world, BlockPos pos) {
 		// Check clicked block first
 		if (canBonemeal(world, pos)) {

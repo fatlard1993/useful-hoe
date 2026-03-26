@@ -5,16 +5,11 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-/**
- * Utilities for detecting crop states.
- */
 public final class CropHelper {
 
 	private CropHelper() {}
 
-	/**
-	 * Checks if a block state represents a mature crop.
-	 */
+	/** Includes generic AGE property fallback for modded crops. */
 	public static boolean isMatureCrop(BlockState state) {
 		Block block = state.getBlock();
 
@@ -57,9 +52,6 @@ public final class CropHelper {
 		return false;
 	}
 
-	/**
-	 * Checks if a block is any type of crop (mature or not).
-	 */
 	public static boolean isCrop(BlockState state) {
 		Block block = state.getBlock();
 		return block instanceof CropBlock
@@ -68,17 +60,11 @@ public final class CropHelper {
 			|| block instanceof SweetBerryBushBlock;
 	}
 
-	/**
-	 * Checks if a block is a sweet berry bush with berries.
-	 */
 	public static boolean isSweetBerryBush(BlockState state) {
 		return state.getBlock() instanceof SweetBerryBushBlock
 			&& state.get(SweetBerryBushBlock.AGE) >= 2;
 	}
 
-	/**
-	 * Checks if a block is a vertical crop (sugar cane, bamboo, cactus, kelp).
-	 */
 	public static boolean isVerticalCrop(BlockState state) {
 		Block block = state.getBlock();
 		return block instanceof SugarCaneBlock
@@ -87,9 +73,7 @@ public final class CropHelper {
 			|| block instanceof KelpPlantBlock;
 	}
 
-	/**
-	 * Checks if a block is harvestable as a vertical crop (has blocks above).
-	 */
+	/** Only harvestable if there's more of the same crop above the base. */
 	public static boolean canHarvestVertical(World world, BlockPos pos) {
 		BlockState state = world.getBlockState(pos);
 		if (!isVerticalCrop(state)) {
