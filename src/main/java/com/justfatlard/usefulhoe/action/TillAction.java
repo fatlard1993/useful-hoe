@@ -1,39 +1,38 @@
 package com.justfatlard.usefulhoe.action;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.Map;
 
 public final class TillAction {
 
 	private static final Map<Block, BlockState> TILLABLE = Map.of(
-		Blocks.GRASS_BLOCK, Blocks.FARMLAND.getDefaultState(),
-		Blocks.DIRT, Blocks.FARMLAND.getDefaultState(),
-		Blocks.DIRT_PATH, Blocks.FARMLAND.getDefaultState(),
-		Blocks.COARSE_DIRT, Blocks.DIRT.getDefaultState(),
-		Blocks.ROOTED_DIRT, Blocks.DIRT.getDefaultState()
+		Blocks.GRASS_BLOCK, Blocks.FARMLAND.defaultBlockState(),
+		Blocks.DIRT, Blocks.FARMLAND.defaultBlockState(),
+		Blocks.DIRT_PATH, Blocks.FARMLAND.defaultBlockState(),
+		Blocks.COARSE_DIRT, Blocks.DIRT.defaultBlockState(),
+		Blocks.ROOTED_DIRT, Blocks.DIRT.defaultBlockState()
 	);
 
 	private TillAction() {}
 
-	public static boolean canTill(World world, BlockPos pos, BlockState state) {
+	public static boolean canTill(Level world, BlockPos pos, BlockState state) {
 		if (!TILLABLE.containsKey(state.getBlock())) {
 			return false;
 		}
 
-		// Check if block above is air or replaceable
-		BlockState above = world.getBlockState(pos.up());
-		return above.isAir() || above.isReplaceable();
+		BlockState above = world.getBlockState(pos.above());
+		return above.isAir() || above.canBeReplaced();
 	}
 
-	public static boolean execute(World world, BlockPos pos, PlayerEntity player) {
+	public static boolean execute(Level world, BlockPos pos, Player player) {
 		BlockState state = world.getBlockState(pos);
 
 		if (!canTill(world, pos, state)) {
@@ -45,8 +44,8 @@ public final class TillAction {
 			return false;
 		}
 
-		world.setBlockState(pos, tilled);
-		world.playSound(null, pos, SoundEvents.ITEM_HOE_TILL, SoundCategory.BLOCKS, 1.0f, 1.0f);
+		world.setBlockAndUpdate(pos, tilled);
+		world.playSound(null, pos, SoundEvents.HOE_TILL.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
 
 		return true;
 	}

@@ -1,69 +1,66 @@
 package com.justfatlard.usefulhoe.action;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Fertilizable;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BoneMealItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.BonemealableBlock;
+import net.minecraft.world.level.block.BonemealSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BoneMealItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public final class BonemealAction {
 
 	private BonemealAction() {}
 
-	/** Checks the exact position only. See canBonemealCrop() for pos + pos.up(). */
-	public static boolean canBonemeal(World world, BlockPos pos) {
+	/** Checks the exact position only. See canBonemealCrop() for pos + pos.above(). */
+	public static boolean canBonemeal(Level world, BlockPos pos) {
 		BlockState state = world.getBlockState(pos);
 
-		if (!(state.getBlock() instanceof Fertilizable fertilizable)) {
+		if (!(state.getBlock() instanceof BonemealableBlock fertilizable)) {
 			return false;
 		}
 
-		// Check if the block can grow with bone meal
-		return fertilizable.isFertilizable(world, pos, state);
+		return fertilizable.isValidBonemealTarget(world, pos, state, BonemealSource.INTERACTION);
 	}
 
-	public static boolean execute(World world, BlockPos pos, PlayerEntity player, ItemStack bonemealStack) {
+	public static boolean execute(Level world, BlockPos pos, Player player, ItemStack bonemealStack) {
 		if (bonemealStack.isEmpty() || !isBonemeal(bonemealStack)) {
 			return false;
 		}
 
-		// Determine actual crop position - check clicked block first, then above
 		BlockPos cropPos;
 		BlockState cropState = world.getBlockState(pos);
 
-		if (cropState.getBlock() instanceof Fertilizable) {
+		if (cropState.getBlock() instanceof BonemealableBlock) {
 			cropPos = pos;
 		} else {
-			cropPos = pos.up();
+			cropPos = pos.above();
 			cropState = world.getBlockState(cropPos);
 		}
 
-		if (!(cropState.getBlock() instanceof Fertilizable fertilizable)) {
+		if (!(cropState.getBlock() instanceof BonemealableBlock fertilizable)) {
 			return false;
 		}
 
-		if (!fertilizable.isFertilizable(world, cropPos, cropState)) {
+		if (!fertilizable.isValidBonemealTarget(world, cropPos, cropState, BonemealSource.INTERACTION)) {
 			return false;
 		}
 
-		if (world instanceof ServerWorld serverWorld) {
-			if (fertilizable.canGrow(world, world.random, cropPos, cropState)) {
-				fertilizable.grow(serverWorld, world.random, cropPos, cropState);
+		if (world instanceof ServerLevel serverWorld) {
+			if (fertilizable.isBonemealSuccess(world, world.getRandom(), cropPos, cropState, BonemealSource.INTERACTION)) {
+				fertilizable.performBonemeal(serverWorld, world.getRandom(), cropPos, cropState, BonemealSource.INTERACTION);
 
-				// Consume bone meal
 				if (!player.isCreative()) {
-					bonemealStack.decrement(1);
+					bonemealStack.shrink(1);
 				}
 
-				// Spawn particles and play sound
-				world.playSound(null, cropPos, SoundEvents.ITEM_BONE_MEAL_USE, SoundCategory.BLOCKS, 1.0f, 1.0f);
-				BoneMealItem.createParticles(serverWorld, cropPos, 0);
+				world.playSound(null, cropPos, SoundEvents.BONE_MEAL_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
+				BoneMealItem.addGrowthParticles(serverWorld, cropPos, 0);
 
 				return true;
 			}
@@ -73,16 +70,14 @@ public final class BonemealAction {
 	}
 
 	public static boolean isBonemeal(ItemStack stack) {
-		return !stack.isEmpty() && stack.isOf(Items.BONE_MEAL);
+		return !stack.isEmpty() && stack.is(Items.BONE_MEAL);
 	}
 
-	/** Checks both pos and pos.up() for fertilizable blocks. */
-	public static boolean canBonemealCrop(World world, BlockPos pos) {
-		// Check clicked block first
+	/** Checks both pos and pos.above() for fertilizable blocks. */
+	public static boolean canBonemealCrop(Level world, BlockPos pos) {
 		if (canBonemeal(world, pos)) {
 			return true;
 		}
-		// Check block above (if clicked on farmland)
-		return canBonemeal(world, pos.up());
+		return canBonemeal(world, pos.above());
 	}
 }

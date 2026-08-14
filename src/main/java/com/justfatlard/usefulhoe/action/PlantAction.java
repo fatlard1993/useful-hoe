@@ -1,48 +1,46 @@
 package com.justfatlard.usefulhoe.action;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.CropBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public final class PlantAction {
 
 	private PlantAction() {}
 
 	/** Handles clicking on farmland directly or on air above farmland. */
-	public static boolean canPlant(World world, BlockPos pos, BlockState state) {
-		// Check if clicked position is farmland/soul sand with empty space above
-		if (state.isOf(Blocks.FARMLAND) || state.isOf(Blocks.SOUL_SAND)) {
-			BlockState above = world.getBlockState(pos.up());
+	public static boolean canPlant(Level world, BlockPos pos, BlockState state) {
+		if (state.getBlock() == Blocks.FARMLAND || state.getBlock() == Blocks.SOUL_SAND) {
+			BlockState above = world.getBlockState(pos.above());
 			return above.isAir();
 		}
 
-		// Check if clicked on air/crop - look for farmland below
-		BlockPos below = pos.down();
+		BlockPos below = pos.below();
 		BlockState belowState = world.getBlockState(below);
-		if (belowState.isOf(Blocks.FARMLAND) || belowState.isOf(Blocks.SOUL_SAND)) {
-			return state.isAir(); // Position must be empty for planting
+		if (belowState.getBlock() == Blocks.FARMLAND || belowState.getBlock() == Blocks.SOUL_SAND) {
+			return state.isAir();
 		}
 
 		return false;
 	}
 
-	public static BlockPos getFarmlandPos(World world, BlockPos pos) {
+	public static BlockPos getFarmlandPos(Level world, BlockPos pos) {
 		BlockState state = world.getBlockState(pos);
-		if (state.isOf(Blocks.FARMLAND) || state.isOf(Blocks.SOUL_SAND)) {
+		if (state.getBlock() == Blocks.FARMLAND || state.getBlock() == Blocks.SOUL_SAND) {
 			return pos;
 		}
-		return pos.down();
+		return pos.below();
 	}
 
-	public static boolean execute(World world, BlockPos pos, PlayerEntity player, ItemStack seedStack) {
+	public static boolean execute(Level world, BlockPos pos, Player player, ItemStack seedStack) {
 		if (seedStack.isEmpty()) {
 			return false;
 		}
@@ -52,40 +50,35 @@ public final class PlantAction {
 			return false;
 		}
 
-		// Determine actual farmland position
 		BlockPos farmlandPos = getFarmlandPos(world, pos);
 		BlockState groundState = world.getBlockState(farmlandPos);
 
-		// Check if seed item can be planted
 		if (!(seedStack.getItem() instanceof BlockItem blockItem)) {
 			return false;
 		}
 
 		Block seedBlock = blockItem.getBlock();
 
-		// Verify the crop can be planted on this ground
 		if (seedBlock instanceof CropBlock) {
-			if (!groundState.isOf(Blocks.FARMLAND)) {
+			if (groundState.getBlock() != Blocks.FARMLAND) {
 				return false;
 			}
 		} else if (seedBlock == Blocks.NETHER_WART) {
-			if (!groundState.isOf(Blocks.SOUL_SAND)) {
+			if (groundState.getBlock() != Blocks.SOUL_SAND) {
 				return false;
 			}
 		} else {
-			// Unknown seed type
 			return false;
 		}
 
-		BlockPos plantPos = farmlandPos.up();
-		BlockState cropState = seedBlock.getDefaultState();
+		BlockPos plantPos = farmlandPos.above();
+		BlockState cropState = seedBlock.defaultBlockState();
 
-		world.setBlockState(plantPos, cropState);
-		world.playSound(null, plantPos, SoundEvents.ITEM_CROP_PLANT, SoundCategory.BLOCKS, 1.0f, 1.0f);
+		world.setBlockAndUpdate(plantPos, cropState);
+		world.playSound(null, plantPos, SoundEvents.CROP_PLANTED, SoundSource.BLOCKS, 1.0f, 1.0f);
 
-		// Consume seed
 		if (!player.isCreative()) {
-			seedStack.decrement(1);
+			seedStack.shrink(1);
 		}
 
 		return true;

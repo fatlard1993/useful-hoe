@@ -2,16 +2,16 @@ package com.justfatlard.usefulhoe.action;
 
 import com.justfatlard.usefulhoe.config.ModConfig;
 import com.justfatlard.usefulhoe.hoe.HoeAreaCalculator;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.HoeItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 import java.util.Map;
@@ -22,80 +22,67 @@ import java.util.WeakHashMap;
  */
 public final class HoeActionHandler {
 
-	/** Minimum ticks between area actions per player (prevents spam/exploit). */
 	private static final int COOLDOWN_TICKS = 4;
-	private static final Map<PlayerEntity, Long> lastActionTick = new WeakHashMap<>();
+	private static final Map<Player, Long> lastActionTick = new WeakHashMap<>();
 
 	private HoeActionHandler() {}
 
-	/**
-	 * Handles hoe use on a block.
-	 * Called from UseBlockCallback.
-	 * Performs cascading actions: till -> plant -> harvest
-	 */
-	public static ActionResult handleUseBlock(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
-		ItemStack mainHand = player.getStackInHand(Hand.MAIN_HAND);
+	public static InteractionResult handleUseBlock(Player player, Level world, InteractionHand hand, BlockHitResult hitResult) {
+		ItemStack mainHand = player.getItemInHand(InteractionHand.MAIN_HAND);
 
-		// Only process if holding a hoe in main hand
-		if (!(mainHand.getItem() instanceof HoeItem)) {
-			return ActionResult.PASS;
+		if (!mainHand.is(ItemTags.HOES)) {
+			return InteractionResult.PASS;
 		}
 
-		// Skip if sneaking (allow vanilla behavior) or spectator
-		if (player.isSneaking() || player.isSpectator()) {
-			return ActionResult.PASS;
+		// Sneak bypasses to vanilla single-block behavior
+		if (player.isShiftKeyDown() || player.isSpectator()) {
+			return InteractionResult.PASS;
 		}
 
 		BlockPos targetPos = hitResult.getBlockPos();
 		BlockState targetState = world.getBlockState(targetPos);
 
-		// Only intercept if the clicked block is hoe-relevant
 		if (!isHoeRelevantBlock(world, targetPos, targetState)) {
-			return ActionResult.PASS;
+			return InteractionResult.PASS;
 		}
 
-		// Client: return success to indicate we handle this
-		if (world.isClient()) {
+		if (world.isClientSide()) {
 			if (hasAnyAction(world, targetPos, player, mainHand)) {
-				return ActionResult.SUCCESS;
+				return InteractionResult.SUCCESS;
 			}
-			return ActionResult.PASS;
+			return InteractionResult.PASS;
 		}
 
 		// Rate limit to prevent spam/exploit
-		long currentTick = world.getTime();
+		long currentTick = world.getGameTime();
 		Long lastTick = lastActionTick.get(player);
 		if (lastTick != null && currentTick - lastTick < COOLDOWN_TICKS) {
-			return ActionResult.PASS;
+			return InteractionResult.PASS;
 		}
 		lastActionTick.put(player, currentTick);
 
-		// Server: perform cascading actions on all affected blocks
 		List<BlockPos> affectedPositions = HoeAreaCalculator.calculateArea(
 			targetPos, player, mainHand, world
 		);
 
-		ItemStack offHand = player.getOffHandStack();
+		ItemStack offHand = player.getOffhandItem();
 		int affected = executeCascadingActions(player, world, affectedPositions, offHand);
 
 		if (affected > 0) {
 			if (!player.isCreative()) {
 				ModConfig config = ModConfig.get();
 				int durabilityCost = config.durabilityBaseCost + config.durabilityPerBlock * affected;
-				mainHand.damage(durabilityCost, player, EquipmentSlot.MAINHAND);
+				mainHand.hurtAndBreak(durabilityCost, player, EquipmentSlot.MAINHAND);
 			}
-			return ActionResult.SUCCESS;
+			return InteractionResult.SUCCESS;
 		}
 
-		return ActionResult.PASS;
+		return InteractionResult.PASS;
 	}
 
-	/**
-	 * Checks if any action can be performed in the area.
-	 */
-	private static boolean hasAnyAction(World world, BlockPos targetPos, PlayerEntity player, ItemStack mainHand) {
+	private static boolean hasAnyAction(Level world, BlockPos targetPos, Player player, ItemStack mainHand) {
 		List<BlockPos> positions = HoeAreaCalculator.calculateArea(targetPos, player, mainHand, world);
-		ItemStack offHand = player.getOffHandStack();
+		ItemStack offHand = player.getOffhandItem();
 
 		for (BlockPos pos : positions) {
 			if (getFirstApplicableAction(world, pos, offHand) != null) return true;
@@ -104,13 +91,12 @@ public final class HoeActionHandler {
 	}
 
 	/**
-	 * Executes ONE action stage in priority order: till -> plant -> bonemeal -> harvest
-	 * One click = one stage. Processes all blocks for that stage, then stops.
-	 * If a stage has no valid targets, moves to the next stage.
+	 * Executes ONE stage in priority order (till -> plant -> bonemeal -> harvest):
+	 * one click processes all blocks for the first stage that has targets, then stops.
 	 */
 	private static int executeCascadingActions(
-			PlayerEntity player,
-			World world,
+			Player player,
+			Level world,
 			List<BlockPos> positions,
 			ItemStack offHand) {
 
@@ -169,22 +155,16 @@ public final class HoeActionHandler {
 		return successCount;
 	}
 
-	/**
-	 * Checks if the clicked block is something the hoe should handle.
-	 * Returns false for non-farming blocks to allow vanilla interactions.
-	 */
-	public static boolean isHoeRelevantBlock(World world, BlockPos pos, BlockState state) {
+	/** False for non-farming blocks so vanilla interactions still work. */
+	public static boolean isHoeRelevantBlock(Level world, BlockPos pos, BlockState state) {
 		return TillAction.canTill(world, pos, state)
 			|| PlantAction.canPlant(world, pos, state)
 			|| HarvestAction.canHarvest(world, pos)
 			|| BonemealAction.canBonemealCrop(world, pos);
 	}
 
-	/**
-	 * Gets the first applicable action for a position, respecting priority order.
-	 * Used by both execution (to check feasibility) and preview rendering.
-	 */
-	public static HoeAction getFirstApplicableAction(World world, BlockPos pos, ItemStack offHand) {
+	/** Shared by execution and preview rendering (ServerAreaRenderer). */
+	public static HoeAction getFirstApplicableAction(Level world, BlockPos pos, ItemStack offHand) {
 		BlockState state = world.getBlockState(pos);
 
 		if (TillAction.canTill(world, pos, state)) {

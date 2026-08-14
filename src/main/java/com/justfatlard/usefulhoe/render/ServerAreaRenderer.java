@@ -7,19 +7,18 @@ import com.justfatlard.usefulhoe.action.HoeActionHandler;
 import com.justfatlard.usefulhoe.hoe.HoeAreaCalculator;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.HoeItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.DustParticleEffect;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.RaycastContext;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.level.ClipContext;
 
 import java.util.List;
 
@@ -31,7 +30,6 @@ public final class ServerAreaRenderer {
 
 	private static int tickCounter = 0;
 
-	// Particle colors as ARGB integers
 	private static final int COLOR_TILL = 0xFF8B4513;     // Brown
 	private static final int COLOR_PLANT = 0xFF33CC33;    // Green
 	private static final int COLOR_BONEMEAL = 0xFFFFFFFF; // White
@@ -39,9 +37,6 @@ public final class ServerAreaRenderer {
 
 	private ServerAreaRenderer() {}
 
-	/**
-	 * Registers server tick event for particle rendering.
-	 */
 	public static void register() {
 		ServerTickEvents.END_SERVER_TICK.register(server -> {
 			ModConfig config = ModConfig.get();
@@ -51,7 +46,7 @@ public final class ServerAreaRenderer {
 			if (tickCounter < config.particleTickInterval) return;
 			tickCounter = 0;
 
-			for (ServerPlayerEntity player : server.getPlayerManager().getPlayerList()) {
+			for (ServerPlayer player : server.getPlayerList().getPlayers()) {
 				renderForPlayer(server, player);
 			}
 		});
@@ -59,25 +54,18 @@ public final class ServerAreaRenderer {
 		UsefulHoe.LOGGER.info("Server-side area preview registered");
 	}
 
-	/**
-	 * Renders particle preview for a specific player.
-	 */
-	private static void renderForPlayer(MinecraftServer server, ServerPlayerEntity player) {
-		// Check if player is holding a hoe
-		ItemStack mainHand = player.getStackInHand(Hand.MAIN_HAND);
-		if (!(mainHand.getItem() instanceof HoeItem)) {
+	private static void renderForPlayer(MinecraftServer server, ServerPlayer player) {
+		ItemStack mainHand = player.getItemInHand(InteractionHand.MAIN_HAND);
+		if (!mainHand.is(ItemTags.HOES)) {
 			return;
 		}
 
-		// Skip if sneaking
-		if (player.isSneaking()) {
+		if (player.isShiftKeyDown()) {
 			return;
 		}
 
-		// Get player's world - ServerPlayerEntity extends ServerWorld context
-		ServerWorld world = (ServerWorld) player.getEntityWorld();
+		ServerLevel world = (ServerLevel) player.level();
 
-		// Raycast to find what block player is looking at
 		BlockHitResult hitResult = raycastFromPlayer(player, 5.0);
 		if (hitResult.getType() != HitResult.Type.BLOCK) {
 			return;
@@ -86,18 +74,15 @@ public final class ServerAreaRenderer {
 		BlockPos targetPos = hitResult.getBlockPos();
 		BlockState targetState = world.getBlockState(targetPos);
 
-		// Only show preview for hoe-relevant blocks
 		if (!HoeActionHandler.isHoeRelevantBlock(world, targetPos, targetState)) {
 			return;
 		}
 
-		// Calculate affected area
 		List<BlockPos> positions = HoeAreaCalculator.calculateArea(
 			targetPos, player, mainHand, world
 		);
 
-		// Spawn particles for each actionable position
-		ItemStack offHand = player.getOffHandStack();
+		ItemStack offHand = player.getOffhandItem();
 		for (BlockPos pos : positions) {
 			HoeAction action = HoeActionHandler.getFirstApplicableAction(world, pos, offHand);
 			if (action != null) {
@@ -106,27 +91,21 @@ public final class ServerAreaRenderer {
 		}
 	}
 
-	/**
-	 * Performs a raycast from the player's eyes in their look direction.
-	 */
-	private static BlockHitResult raycastFromPlayer(ServerPlayerEntity player, double maxDistance) {
-		Vec3d eyePos = player.getEyePos();
-		Vec3d lookVec = player.getRotationVec(1.0f);
-		Vec3d endPos = eyePos.add(lookVec.multiply(maxDistance));
+	private static BlockHitResult raycastFromPlayer(ServerPlayer player, double maxDistance) {
+		Vec3 eyePos = player.getEyePosition();
+		Vec3 lookVec = player.getViewVector(1.0f);
+		Vec3 endPos = eyePos.add(lookVec.scale(maxDistance));
 
-		ServerWorld world = (ServerWorld) player.getEntityWorld();
-		return world.raycast(new RaycastContext(
+		ServerLevel world = (ServerLevel) player.level();
+		return world.clip(new ClipContext(
 			eyePos,
 			endPos,
-			RaycastContext.ShapeType.OUTLINE,
-			RaycastContext.FluidHandling.NONE,
+			ClipContext.Block.OUTLINE,
+			ClipContext.Fluid.NONE,
 			player
 		));
 	}
 
-	/**
-	 * Gets particle color for an action.
-	 */
 	private static int getColorForAction(HoeAction action) {
 		return switch (action) {
 			case TILL -> COLOR_TILL;
@@ -139,23 +118,22 @@ public final class ServerAreaRenderer {
 	/**
 	 * Spawns particles at block corners, visible only to the specific player.
 	 */
-	private static void spawnCornerParticles(ServerWorld world, ServerPlayerEntity player, BlockPos pos, int color) {
-		DustParticleEffect particle = new DustParticleEffect(color, 0.5f);
+	private static void spawnCornerParticles(ServerLevel world, ServerPlayer player, BlockPos pos, int color) {
+		DustParticleOptions particle = new DustParticleOptions(color, 0.5f);
 
 		double y = pos.getY() + 1.01;
 		double x = pos.getX();
 		double z = pos.getZ();
 		double inset = 0.1;
 
-		// Spawn particles only for this player
 		// Signature: player, particle, force, important, x, y, z, count, deltaX, deltaY, deltaZ, speed
-		world.spawnParticles(player, particle, true, false,
+		world.sendParticles(player, particle, true, false,
 			x + inset, y, z + inset, 1, 0, 0, 0, 0);
-		world.spawnParticles(player, particle, true, false,
+		world.sendParticles(player, particle, true, false,
 			x + 1 - inset, y, z + inset, 1, 0, 0, 0, 0);
-		world.spawnParticles(player, particle, true, false,
+		world.sendParticles(player, particle, true, false,
 			x + inset, y, z + 1 - inset, 1, 0, 0, 0, 0);
-		world.spawnParticles(player, particle, true, false,
+		world.sendParticles(player, particle, true, false,
 			x + 1 - inset, y, z + 1 - inset, 1, 0, 0, 0, 0);
 	}
 }

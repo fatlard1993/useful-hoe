@@ -73,9 +73,7 @@ A config file is created at `config/useful-hoe.json` on first run. Changes requi
 
 ## Requirements
 
-- Minecraft 1.21+
-- Fabric Loader 0.16.0+
-- Fabric API
+Targets the Minecraft, Fabric Loader, and Fabric API versions declared in this mod's `gradle.properties`; check there for the exact currently-supported version.
 
 ## Installation
 

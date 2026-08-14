@@ -2,118 +2,109 @@ package com.justfatlard.usefulhoe.action;
 
 import com.justfatlard.usefulhoe.crop.CropHelper;
 import com.justfatlard.usefulhoe.crop.SeedRegistry;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.CropBlock;
-import net.minecraft.block.SweetBerryBushBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.CropBlock;
+import net.minecraft.world.level.block.SweetBerryBushBlock;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 import java.util.List;
 
 public final class HarvestAction {
 
+	private static final int DESTROY_UPDATE_LIMIT = 512;
+
 	private HarvestAction() {}
 
-	/** Checks pos and pos.up() for mature crops, plus vertical crops. */
-	public static boolean canHarvest(World world, BlockPos pos) {
+	/** Checks pos and pos.above() for mature crops, plus vertical crops. */
+	public static boolean canHarvest(Level world, BlockPos pos) {
 		BlockState state = world.getBlockState(pos);
 
-		// Check for vertical crops (sugar cane, bamboo, cactus, kelp)
 		if (CropHelper.canHarvestVertical(world, pos)) {
 			return true;
 		}
 
-		// Check if clicked block itself is a mature crop
 		if (CropHelper.isMatureCrop(state)) {
 			return true;
 		}
 
-		// Check if block above is a mature crop (clicking on farmland)
-		BlockPos above = pos.up();
+		BlockPos above = pos.above();
 		BlockState aboveState = world.getBlockState(above);
 		return CropHelper.isMatureCrop(aboveState);
 	}
 
-	public static boolean execute(World world, BlockPos pos, PlayerEntity player, ItemStack offHand) {
+	public static boolean execute(Level world, BlockPos pos, Player player, ItemStack offHand) {
 		BlockState state = world.getBlockState(pos);
 
-		// Handle vertical crops (sugar cane, bamboo, cactus, kelp)
 		if (CropHelper.canHarvestVertical(world, pos)) {
 			return harvestVertical(world, pos, player);
 		}
 
-		// Handle sweet berry bushes (pick without breaking)
 		if (CropHelper.isSweetBerryBush(state)) {
 			return harvestBerries(world, pos, player);
 		}
 
-		// Handle regular crops
 		return harvestCrop(world, pos, player, offHand);
 	}
 
-	private static boolean harvestBerries(World world, BlockPos pos, PlayerEntity player) {
+	private static boolean harvestBerries(Level world, BlockPos pos, Player player) {
 		BlockState state = world.getBlockState(pos);
-		int age = state.get(SweetBerryBushBlock.AGE);
+		int age = state.getValue(SweetBerryBushBlock.AGE);
 
 		if (age < 2) return false;
 
-		// Calculate berry drops (1-2 at age 2, 2-3 at age 3)
-		int berryCount = 1 + world.random.nextInt(2);
+		// Vanilla drop rates: 1-2 at age 2, 2-3 at age 3
+		int berryCount = 1 + world.getRandom().nextInt(2);
 		if (age == 3) berryCount++;
 
-		// Drop berries
-		Block.dropStack(world, pos, new ItemStack(Items.SWEET_BERRIES, berryCount));
+		Block.popResource(world, pos, new ItemStack(Items.SWEET_BERRIES, berryCount));
 
-		// Reset bush to age 1
-		world.setBlockState(pos, state.with(SweetBerryBushBlock.AGE, 1));
-		world.playSound(null, pos, SoundEvents.BLOCK_SWEET_BERRY_BUSH_PICK_BERRIES, SoundCategory.BLOCKS, 1.0f, 1.0f);
+		world.setBlockAndUpdate(pos, state.setValue(SweetBerryBushBlock.AGE, 1));
+		world.playSound(null, pos, SoundEvents.SWEET_BERRY_BUSH_PICK_BERRIES, SoundSource.BLOCKS, 1.0f, 1.0f);
 
 		return true;
 	}
 
 	/** Breaks all blocks above base, keeps the base block. */
-	private static boolean harvestVertical(World world, BlockPos pos, PlayerEntity player) {
-		// Start harvesting from one block above (keep the base)
-		BlockPos harvestPos = pos.up();
+	private static boolean harvestVertical(Level world, BlockPos pos, Player player) {
+		BlockPos harvestPos = pos.above();
 		int harvested = 0;
 
 		while (true) {
 			BlockState state = world.getBlockState(harvestPos);
-			if (!CropHelper.isVerticalCrop(state) && !(state.getBlock() instanceof net.minecraft.block.KelpBlock)) {
+			if (!CropHelper.isVerticalCrop(state) && !(state.getBlock() instanceof net.minecraft.world.level.block.KelpBlock)) {
 				break;
 			}
 
-			// Break and drop
-			world.breakBlock(harvestPos, true, player);
+			world.destroyBlock(harvestPos, true, player, DESTROY_UPDATE_LIMIT);
 			harvested++;
-			harvestPos = harvestPos.up();
+			harvestPos = harvestPos.above();
 		}
 
 		if (harvested > 0) {
-			world.playSound(null, pos, SoundEvents.BLOCK_GRASS_BREAK, SoundCategory.BLOCKS, 1.0f, 1.0f);
+			world.playSound(null, pos, SoundEvents.GRASS_BREAK, SoundSource.BLOCKS, 1.0f, 1.0f);
 		}
 
 		return harvested > 0;
 	}
 
 	/** Replants using off-hand seeds if available, otherwise uses a seed from drops. */
-	private static boolean harvestCrop(World world, BlockPos pos, PlayerEntity player, ItemStack offHand) {
-		// Determine actual crop position
+	private static boolean harvestCrop(Level world, BlockPos pos, Player player, ItemStack offHand) {
 		BlockPos cropPos;
 		BlockState cropState = world.getBlockState(pos);
 
 		if (CropHelper.isMatureCrop(cropState)) {
 			cropPos = pos;
 		} else {
-			cropPos = pos.up();
+			cropPos = pos.above();
 			cropState = world.getBlockState(cropPos);
 		}
 
@@ -123,12 +114,12 @@ public final class HarvestAction {
 
 		Block cropBlock = cropState.getBlock();
 
-		if (world instanceof ServerWorld serverWorld) {
-			List<ItemStack> drops = Block.getDroppedStacks(
-				cropState, serverWorld, cropPos, null, player, player.getMainHandStack()
+		if (world instanceof ServerLevel serverWorld) {
+			List<ItemStack> drops = Block.getDrops(
+				cropState, serverWorld, cropPos, null, player, player.getMainHandItem()
 			);
 
-			// Find seed in drops for replanting
+			// Withhold one seed from the drops for replanting
 			Item seedItem = SeedRegistry.getSeedFor(cropBlock);
 			ItemStack seedFromDrops = ItemStack.EMPTY;
 
@@ -136,37 +127,36 @@ public final class HarvestAction {
 				if (seedItem != null && drop.getItem() == seedItem && seedFromDrops.isEmpty()) {
 					seedFromDrops = drop;
 				} else {
-					Block.dropStack(world, cropPos, drop);
+					Block.popResource(world, cropPos, drop);
 				}
 			}
 
-			// Break the crop
-			world.breakBlock(cropPos, false, player);
+			world.destroyBlock(cropPos, false, player, DESTROY_UPDATE_LIMIT);
 
 			// Replant
 			if (cropBlock instanceof CropBlock) {
 				Block offHandCrop = SeedRegistry.getCropFor(offHand.getItem());
 				if (offHandCrop != null) {
-					BlockState newCrop = offHandCrop.getDefaultState();
-					world.setBlockState(cropPos, newCrop);
+					BlockState newCrop = offHandCrop.defaultBlockState();
+					world.setBlockAndUpdate(cropPos, newCrop);
 					if (!player.isCreative()) {
-						offHand.decrement(1);
+						offHand.shrink(1);
 					}
 					if (!seedFromDrops.isEmpty()) {
-						Block.dropStack(world, cropPos, seedFromDrops);
+						Block.popResource(world, cropPos, seedFromDrops);
 					}
 				} else if (!seedFromDrops.isEmpty()) {
-					BlockState newCrop = cropBlock.getDefaultState();
-					world.setBlockState(cropPos, newCrop);
-					seedFromDrops.decrement(1);
+					BlockState newCrop = cropBlock.defaultBlockState();
+					world.setBlockAndUpdate(cropPos, newCrop);
+					seedFromDrops.shrink(1);
 					if (!seedFromDrops.isEmpty()) {
-						Block.dropStack(world, cropPos, seedFromDrops);
+						Block.popResource(world, cropPos, seedFromDrops);
 					}
 				}
 			}
 		}
 
-		world.playSound(null, cropPos, SoundEvents.BLOCK_CROP_BREAK, SoundCategory.BLOCKS, 1.0f, 1.0f);
+		world.playSound(null, cropPos, SoundEvents.CROP_BREAK, SoundSource.BLOCKS, 1.0f, 1.0f);
 		return true;
 	}
 }

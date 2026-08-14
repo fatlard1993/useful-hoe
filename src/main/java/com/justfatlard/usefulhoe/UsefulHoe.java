@@ -8,11 +8,7 @@ import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Main mod initializer for Useful Hoe.
- * Server-side mod - works with vanilla clients on multiplayer.
- * Also works in singleplayer.
- */
+/** Server-side only: works with vanilla clients, no client counterpart. */
 public class UsefulHoe implements ModInitializer {
 
 	public static final String MOD_ID = "useful-hoe";
@@ -24,12 +20,10 @@ public class UsefulHoe implements ModInitializer {
 
 		ModConfig.get();
 
-		// Register block use callback for hoe actions
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) ->
 			HoeActionHandler.handleUseBlock(player, world, hand, hitResult)
 		);
 
-		// Register server-side particle preview
 		ServerAreaRenderer.register();
 
 		LOGGER.info("Useful Hoe initialized");

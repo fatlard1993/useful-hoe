@@ -63,9 +63,6 @@ public final class ModConfig {
 		};
 	}
 
-	/**
-	 * Clamps all values to safe ranges to prevent exploits or crashes.
-	 */
 	private void validate() {
 		reach0 = clampArea(reach0);
 		reach1 = clampArea(reach1);

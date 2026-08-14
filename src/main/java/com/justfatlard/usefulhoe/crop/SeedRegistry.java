@@ -1,16 +1,13 @@
 package com.justfatlard.usefulhoe.crop;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.item.Items;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Maps crops to their seed items for replanting.
- */
 public final class SeedRegistry {
 
 	private static final Map<Block, Item> CROP_TO_SEED = new HashMap<>();
@@ -35,25 +32,14 @@ public final class SeedRegistry {
 
 	private SeedRegistry() {}
 
-	/**
-	 * Gets the seed item for a crop block.
-	 * @return The seed item, or null if not found
-	 */
 	public static Item getSeedFor(Block crop) {
 		return CROP_TO_SEED.get(crop);
 	}
 
-	/**
-	 * Checks if an item is a plantable seed.
-	 */
 	public static boolean isSeed(Item item) {
 		return SEED_TO_CROP.containsKey(item);
 	}
 
-	/**
-	 * Gets the crop block that a seed item plants.
-	 * @return The crop block, or null if not a registered seed
-	 */
 	public static Block getCropFor(Item seed) {
 		return SEED_TO_CROP.get(seed);
 	}

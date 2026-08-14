@@ -1,9 +1,10 @@
 package com.justfatlard.usefulhoe.crop;
 
-import net.minecraft.block.*;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.Level;
 
 public final class CropHelper {
 
@@ -18,35 +19,31 @@ public final class CropHelper {
 			return false;
 		}
 
-		// CropBlock (wheat, carrots, potatoes, beetroots)
 		if (block instanceof CropBlock crop) {
-			return crop.isMature(state);
+			return crop.isMaxAge(state);
 		}
 
-		// NetherWartBlock
 		if (block instanceof NetherWartBlock) {
-			return state.get(NetherWartBlock.AGE) >= 3;
+			return state.getValue(NetherWartBlock.AGE) >= 3;
 		}
 
-		// CocoaBlock
 		if (block instanceof CocoaBlock) {
-			return state.get(CocoaBlock.AGE) >= 2;
+			return state.getValue(CocoaBlock.AGE) >= 2;
 		}
 
-		// SweetBerryBushBlock - harvestable at age 2+ (has berries)
+		// age >= 2 means the bush has berries
 		if (block instanceof SweetBerryBushBlock) {
-			return state.get(SweetBerryBushBlock.AGE) >= 2;
+			return state.getValue(SweetBerryBushBlock.AGE) >= 2;
 		}
 
-		// Generic age property check for modded crops
-		if (state.contains(Properties.AGE_7)) {
-			return state.get(Properties.AGE_7) >= 7;
+		if (state.hasProperty(BlockStateProperties.AGE_7)) {
+			return state.getValue(BlockStateProperties.AGE_7) >= 7;
 		}
-		if (state.contains(Properties.AGE_3)) {
-			return state.get(Properties.AGE_3) >= 3;
+		if (state.hasProperty(BlockStateProperties.AGE_3)) {
+			return state.getValue(BlockStateProperties.AGE_3) >= 3;
 		}
-		if (state.contains(Properties.AGE_2)) {
-			return state.get(Properties.AGE_2) >= 2;
+		if (state.hasProperty(BlockStateProperties.AGE_2)) {
+			return state.getValue(BlockStateProperties.AGE_2) >= 2;
 		}
 
 		return false;
@@ -62,25 +59,24 @@ public final class CropHelper {
 
 	public static boolean isSweetBerryBush(BlockState state) {
 		return state.getBlock() instanceof SweetBerryBushBlock
-			&& state.get(SweetBerryBushBlock.AGE) >= 2;
+			&& state.getValue(SweetBerryBushBlock.AGE) >= 2;
 	}
 
 	public static boolean isVerticalCrop(BlockState state) {
 		Block block = state.getBlock();
 		return block instanceof SugarCaneBlock
-			|| block instanceof BambooBlock
+			|| block instanceof BambooStalkBlock
 			|| block instanceof CactusBlock
 			|| block instanceof KelpPlantBlock;
 	}
 
 	/** Only harvestable if there's more of the same crop above the base. */
-	public static boolean canHarvestVertical(World world, BlockPos pos) {
+	public static boolean canHarvestVertical(Level world, BlockPos pos) {
 		BlockState state = world.getBlockState(pos);
 		if (!isVerticalCrop(state)) {
 			return false;
 		}
-		// Only harvest if there's more of the same crop above
-		BlockState above = world.getBlockState(pos.up());
+		BlockState above = world.getBlockState(pos.above());
 		return isVerticalCrop(above) || above.getBlock() instanceof KelpBlock;
 	}
 }
