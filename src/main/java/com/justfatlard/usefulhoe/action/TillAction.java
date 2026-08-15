@@ -44,6 +44,14 @@ public final class TillAction {
 			return false;
 		}
 
+		// canTill admits replaceable plants above (wider than vanilla's air-only
+		// rule), so the hoe must clear them: grass survives on farmland and
+		// would otherwise be left standing on the fresh tilled block
+		BlockState above = world.getBlockState(pos.above());
+		if (!above.isAir() && above.canBeReplaced()) {
+			world.destroyBlock(pos.above(), true, player);
+		}
+
 		world.setBlockAndUpdate(pos, tilled);
 		world.playSound(null, pos, SoundEvents.HOE_TILL.value(), SoundSource.BLOCKS, 1.0f, 1.0f);
 
