@@ -71,19 +71,10 @@ A config file is created at `config/useful-hoe.json` on first run. Changes requi
 | `bonemealEnabled` | `true` | Enable area bonemealing |
 | `harvestEnabled` | `true` | Enable area harvesting |
 
-## Requirements
-
-Targets the Minecraft, Fabric Loader, and Fabric API versions declared in this mod's `gradle.properties`; check there for the exact currently-supported version.
-
 ## Installation
 
-**Server (dedicated or singleplayer):**
-1. Install [Fabric Loader](https://fabricmc.net/use/)
-2. Install [Fabric API](https://modrinth.com/mod/fabric-api)
-3. Download the mod JAR and place it in your `mods` folder
-
-**Multiplayer clients:** No installation needed - works with vanilla clients!
+Install server-side alongside its declared dependencies (see `fabric.mod.json`). Vanilla clients need nothing. Version targets live in `gradle.properties` (Minecraft, loader, Fabric API) and `fabric.mod.json` (Java).
 
 ## License
 
-MIT License
+MIT, see [LICENSE](LICENSE).
