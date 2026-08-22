@@ -26,6 +26,12 @@ public class UsefulHoe implements ModInitializer {
 
 		ServerAreaRenderer.register();
 
+		// Isolated in its own class and only reached from here: it refers to
+		// Village Quests types directly, so it must not load without that mod.
+		if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("village-quests-justfatlard")) {
+			com.justfatlard.usefulhoe.integration.HoeQuestRegistration.register();
+		}
+
 		LOGGER.info("Useful Hoe initialized");
 	}
 }
