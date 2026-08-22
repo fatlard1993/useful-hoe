@@ -9,6 +9,8 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 
+import com.justfatlard.usefulhoe.integration.DirtSlabTilling;
+
 import java.util.Map;
 
 public final class TillAction {
@@ -23,8 +25,14 @@ public final class TillAction {
 
 	private TillAction() {}
 
+	/** What this turns into, from vanilla's own list first and then whatever mods add. */
+	private static BlockState tilledForm(BlockState state) {
+		BlockState vanilla = TILLABLE.get(state.getBlock());
+		return vanilla != null ? vanilla : DirtSlabTilling.tilled(state);
+	}
+
 	public static boolean canTill(Level world, BlockPos pos, BlockState state) {
-		if (!TILLABLE.containsKey(state.getBlock())) {
+		if (tilledForm(state) == null) {
 			return false;
 		}
 
@@ -39,7 +47,7 @@ public final class TillAction {
 			return false;
 		}
 
-		BlockState tilled = TILLABLE.get(state.getBlock());
+		BlockState tilled = tilledForm(state);
 		if (tilled == null) {
 			return false;
 		}
