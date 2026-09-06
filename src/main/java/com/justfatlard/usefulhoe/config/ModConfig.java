@@ -18,6 +18,7 @@ public final class ModConfig {
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 	private static final String FILE_NAME = "useful-hoe.json";
 	private static final int MAX_AREA_DIMENSION = 32;
+	private static final int MAX_RAIN_GROWTH_BONUS = 8;
 
 	private static ModConfig instance;
 
@@ -42,6 +43,23 @@ public final class ModConfig {
 	public boolean plantEnabled = true;
 	public boolean bonemealEnabled = true;
 	public boolean harvestEnabled = true;
+
+	/**
+	 * Whether rain brings on crops that are standing in it.
+	 *
+	 * <p>Nothing under a roof is affected, and nothing changes about what a crop needs to grow -
+	 * only how often it gets asked.
+	 */
+	public boolean rainGrowthEnabled = true;
+
+	/**
+	 * Extra growth rolls a rain-soaked crop gets each time the game ticks it.
+	 *
+	 * <p>One is a doubling, which is a noticeable but not silly amount of weather. Clamped low
+	 * because each roll is a real random tick and a large number would make rain worth more than
+	 * bone meal.
+	 */
+	public int rainGrowthBonusTicks = 1;
 
 	private ModConfig() {}
 
@@ -72,6 +90,7 @@ public final class ModConfig {
 		reach5 = clampArea(reach5);
 
 		durabilityBaseCost = Math.max(0, durabilityBaseCost);
+		rainGrowthBonusTicks = Math.clamp(rainGrowthBonusTicks, 0, MAX_RAIN_GROWTH_BONUS);
 		durabilityPerBlock = Math.max(0, durabilityPerBlock);
 		particleTickInterval = Math.max(1, particleTickInterval);
 	}
@@ -107,6 +126,11 @@ public final class ModConfig {
 		save(config, configFile);
 		UsefulHoe.LOGGER.info("Created default config at {}", configFile);
 		return config;
+	}
+
+	/** Write the live config back, for a change that came from the mod menu. */
+	public static void save() {
+		save(get(), FabricLoader.getInstance().getConfigDir().resolve(FILE_NAME));
 	}
 
 	private static void save(ModConfig config, Path configFile) {

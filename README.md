@@ -57,7 +57,9 @@ Area actions cost **1 base + 1 per affected block** durability (configurable). C
 
 ## Configuration
 
-A config file is created at `config/useful-hoe.json` on first run. Changes require a server restart.
+A config file is created at `config/useful-hoe.json` on first run. The switches and the durability
+costs are also on the Useful Hoe page of the mod menu, for ops, and a change there takes effect at
+once; a change to the file needs a server restart.
 
 | Field | Default | Description |
 |-------|---------|-------------|
@@ -71,9 +73,9 @@ A config file is created at `config/useful-hoe.json` on first run. Changes requi
 | `bonemealEnabled` | `true` | Enable area bonemealing |
 | `harvestEnabled` | `true` | Enable area harvesting |
 
-## Installation
+## Development
 
-Install server-side alongside its declared dependencies (see `fabric.mod.json`). Vanilla clients need nothing. Version targets live in `gradle.properties` (Minecraft, loader, Fabric API) and `fabric.mod.json` (Java).
+Installing is in [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## License
 

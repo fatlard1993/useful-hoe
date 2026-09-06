@@ -24,6 +24,10 @@
 	},
 	"suggests": {
 		"village-quests-justfatlard": "*",
-		"emerald-tools-justfatlard": "*"
-	}
+		"emerald-tools-justfatlard": "*",
+		"pandorical": "*"
+	},
+	"mixins": [
+		"useful-hoe.mixins.json"
+	]
 }

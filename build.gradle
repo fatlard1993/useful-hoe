@@ -16,6 +16,21 @@ dependencies {
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
 	implementation(project(':village-quests'))
+
+	// Optional: pandorical integration, compile-only and never bundled. Resolved by the version
+	// pandorical declares rather than a version written down here.
+	def pandoricalProperties = file("../pandorical/gradle.properties")
+	if (pandoricalProperties.exists()) {
+		def pandoricalVersion = new Properties().with {
+			pandoricalProperties.withInputStream { load(it) }
+			getProperty("mod_version")
+		}
+		def pandoricalJar = file("../pandorical/build/libs/pandorical-${pandoricalVersion}.jar")
+		if (!pandoricalJar.exists()) {
+			throw new GradleException("pandorical ${pandoricalVersion} is not built. Run `mc-build pandorical` first.")
+		}
+		compileOnly files(pandoricalJar)
+	}
 }
 
 // Fabric tests these predicates against the loader's *normalized* game version,
@@ -60,5 +75,9 @@ java {
 jar {
 	from("LICENSE") {
 		rename { "${it}_${project.base.archivesName.get()}" }
+	}
+	// The readme rides in the jar beside the licence, so a server can show it in-game.
+	from("README.md") {
+		rename { "README_${project.base.archivesName.get()}.md" }
 	}
 }

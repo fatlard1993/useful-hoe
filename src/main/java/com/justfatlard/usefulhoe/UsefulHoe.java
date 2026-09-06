@@ -19,6 +19,7 @@ public class UsefulHoe implements ModInitializer {
 		LOGGER.info("Initializing Useful Hoe (server-side)");
 
 		ModConfig.get();
+		com.justfatlard.usefulhoe.integration.PandoricalMenu.register();
 
 		UseBlockCallback.EVENT.register((player, world, hand, hitResult) ->
 			HoeActionHandler.handleUseBlock(player, world, hand, hitResult)

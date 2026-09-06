@@ -69,6 +69,12 @@ public final class HoeActionHandler {
 		int affected = executeCascadingActions(player, world, affectedPositions, offHand);
 
 		if (affected > 0) {
+			// Swung here, on the server, because here is the only place that knows work was really
+			// done. The client returns SUCCESS on a guess - it re-runs the area calculation without
+			// the server's view of what each block actually allows - and a swing driven off that
+			// guess is a swing at nothing. Broadcast, so everyone else sees the arm move too.
+			player.swing(InteractionHand.MAIN_HAND, mainHand.getInteractAnimation(), true);
+
 			if (!player.isCreative()) {
 				ModConfig config = ModConfig.get();
 				int durabilityCost = config.durabilityBaseCost + config.durabilityPerBlock * affected;
