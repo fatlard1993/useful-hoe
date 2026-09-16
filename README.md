@@ -16,7 +16,8 @@ A **server-side** Minecraft Fabric mod that makes hoes actually useful! Till, pl
 - **Fortune Support** - Fortune enchantment on hoe increases crop drops
 - **Visual Preview** - Colored particles show affected area when holding a hoe
 - **Reach Enchantment** - New enchantment to increase hoe area (5 levels)
-- **Fully Configurable** - JSON config for area sizes, durability costs, and action toggles
+- **Rain Growth** - Crops standing out in the rain get extra growth rolls; nothing under a roof is affected
+- **Fully Configurable** - JSON config for area sizes, durability costs, action toggles and rain growth
 
 ## Area Sizes by Reach Level
 
@@ -51,15 +52,27 @@ Hold **Sneak** to use vanilla single-block behavior.
 - **White** - Crops that will be bonemealed
 - **Gold** - Mature crops that will be harvested
 
+## Rain Growth
+
+A crop that can see the sky while it rains gets extra growth rolls each time the game random-ticks
+it (one by default). Each extra roll is the crop's own random tick, so light, moisture and spacing
+still decide whether it grows: rain makes the roll come round more often, it does not make a crop
+in the dark grow. Snow does not count.
+
+What counts is the block tag `#useful-hoe:rain_grown`: vanilla crops (`#minecraft:crops`), sugar
+cane, bamboo, sweet berry bushes and cocoa. Another mod adds its own crops by shipping a tag file,
+with no dependency on this one.
+
 ## Durability Cost
 
 Area actions cost **1 base + 1 per affected block** durability (configurable). Creative mode does not consume durability.
 
 ## Configuration
 
-A config file is created at `config/useful-hoe.json` on first run. The switches and the durability
-costs are also on the Useful Hoe page of the mod menu, for ops, and a change there takes effect at
-once; a change to the file needs a server restart.
+A config file is created at `config/useful-hoe.json` on first run. With Pandorical installed, the
+switches, the durability costs and the rain growth settings are also on the Useful Hoe page of the
+mod menu, for ops, and a change there takes effect at once; a change to the file needs a server
+restart.
 
 | Field | Default | Description |
 |-------|---------|-------------|
@@ -72,6 +85,13 @@ once; a change to the file needs a server restart.
 | `plantEnabled` | `true` | Enable area planting |
 | `bonemealEnabled` | `true` | Enable area bonemealing |
 | `harvestEnabled` | `true` | Enable area harvesting |
+| `rainGrowthEnabled` | `true` | Crops standing in the rain get extra growth rolls |
+| `rainGrowthBonusTicks` | `1` | Extra growth rolls per random tick in the rain (0-8) |
+
+## With Other Mods
+
+- **[Dirt Slab](https://github.com/fatlard1993/dirt-slab)** - The area tills dirt, grass, path and coarse dirt slabs the same way a single right-click on one does
+- **[Village Quests](https://github.com/fatlard1993/village-quests)** - A farmer takes apprentices: five lessons on the Reach enchantment, the off-hand, replanting and Fortune, berries and column crops, and what the wide swing costs a hoe, plus a sixth on the emerald hoe when Emerald Tools is installed. Finishing gets you sixteen bone meal
 
 ## Development
 
