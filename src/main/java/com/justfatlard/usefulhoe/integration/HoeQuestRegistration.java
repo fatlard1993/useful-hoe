@@ -9,6 +9,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
@@ -56,13 +57,19 @@ public final class HoeQuestRegistration {
 		return id != null && id.getPath().endsWith("_hoe");
 	}
 
-	private static boolean hasReach(ItemStack stack) {
-		ItemEnchantments enchantments = stack.get(DataComponents.ENCHANTMENTS);
-		if (enchantments == null) return false;
-		for (Holder<Enchantment> held : enchantments.keySet()) {
-			if (held.is(REACH)) return true;
-		}
-		return false;
+	/** Reach I on a book, for the farmer to set down beside your hoe. */
+	private static ItemStack reachBook(ServerLevel world) {
+		return world.registryAccess()
+			.lookup(net.minecraft.core.registries.Registries.ENCHANTMENT)
+			.flatMap(registry -> registry.get(ResourceKey.create(net.minecraft.core.registries.Registries.ENCHANTMENT, REACH)))
+			.map(enchantment -> {
+				ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+				ItemEnchantments.Mutable stored = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+				stored.set(enchantment, 1);
+				book.set(DataComponents.STORED_ENCHANTMENTS, stored.toImmutable());
+				return book;
+			})
+			.orElse(null);
 	}
 
 	private static Predicate<ItemStack> atLeast(Item item, int count) {
@@ -92,6 +99,24 @@ public final class HoeQuestRegistration {
 					"You've got a hoe on you and it's worn honest. That's a working tool, not a carried one.",
 					"{mentor} taught you. Thought as much. They always start people on the enchantment.")),
 			new LessonApi.Hooks() {
+				/**
+				 * The first lesson hands Reach over rather than asking for it.
+				 *
+				 * <p>It used to want a hoe that already had the enchantment, which is a strange
+				 * thing for a first lesson to ask: the whole apprenticeship is about what Reach
+				 * does, and the door to it was knowing already. Worse, the enchantment was in no
+				 * obtainment tag at all for a long while, so the door did not open for anybody
+				 * playing survival. The farmer teaches it by giving it, the way they give the
+				 * bone meal at the end.
+				 */
+				@Override
+				public void onLesson(ServerPlayer player, ServerLevel world, int beat, LessonApi.Teacher teacher) {
+					if (beat != 1) return;
+					ItemStack book = reachBook(world);
+					if (book == null) return;
+					teacher.give(book);
+				}
+
 				@Override
 				public void onGraduate(ServerPlayer player, ServerLevel world, LessonApi.Teacher teacher) {
 					teacher.give(new ItemStack(Items.BONE_MEAL, 16));
@@ -105,17 +130,17 @@ public final class HoeQuestRegistration {
 	private static List<LessonApi.Lesson> lessons() {
 		List<LessonApi.Lesson> lessons = new ArrayList<>(List.of(
 			new LessonApi.Lesson(
-				"You have been farming a square at a time like your grandfather. Bring me a hoe with Reach on it. Any hoe, any level, "
-					+ "off a table or a book, I do not mind. Until it has that word on it you are holding a stick with an edge.",
-				"bring {name} a hoe enchanted with Reach",
+				"You have been farming a square at a time like your grandfather. Bring me a hoe. Any hoe, I do not mind which, "
+					+ "and I will put the word on it myself. Until it has that word on it you are holding a stick with an edge.",
+				"bring {name} a hoe",
 				"Without that word on it, a hoe turns one square. That is the whole difference.",
-				"*turns it over, finds the enchantment* There. Understand that this is the entire thing. A hoe with nothing on it "
-					+ "works exactly as it always has, one square at a time. Reach is what makes it a farming tool instead of a "
-					+ "ground-breaking tool.",
+				"*takes it, turns it over, and sets a book down beside it* There. Reach. Put that on it at an anvil and understand "
+					+ "that this is the entire thing. A hoe with nothing on it works exactly as it always has, one square at a "
+					+ "time. Reach is what makes it a farming tool instead of a ground-breaking tool.",
 				"Five levels. The first gives you a strip of three, and the fifth gives you nine across and eighteen deep, which is more "
 					+ "field than you think until you are standing in it. And nothing but a hoe will take it, so do not waste the table "
 					+ "on your boots.",
-				Items.DIAMOND_HOE, stack -> isHoe(stack) && hasReach(stack), 6),
+				Items.DIAMOND_HOE, HoeQuestRegistration::isHoe, 6),
 
 			new LessonApi.Lesson(
 				"Sixteen bone meal. Do not ask me what for yet. I want it in your hand while I tell you where to put it, because "
