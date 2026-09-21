@@ -2,7 +2,9 @@ package com.justfatlard.usefulhoe.action;
 
 import com.justfatlard.usefulhoe.crop.CropHelper;
 import com.justfatlard.usefulhoe.crop.SeedRegistry;
+import com.justfatlard.usefulhoe.crop.WholeHarvest;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.SweetBerryBushBlock;
@@ -32,13 +34,13 @@ public final class HarvestAction {
 			return true;
 		}
 
-		if (CropHelper.isMatureCrop(state)) {
+		if (CropHelper.isMatureCrop(state) || WholeHarvest.isReady(world, pos)) {
 			return true;
 		}
 
 		BlockPos above = pos.above();
 		BlockState aboveState = world.getBlockState(above);
-		return CropHelper.isMatureCrop(aboveState);
+		return CropHelper.isMatureCrop(aboveState) || WholeHarvest.isReady(world, above);
 	}
 
 	public static boolean execute(Level world, BlockPos pos, Player player, ItemStack offHand) {
@@ -52,7 +54,36 @@ public final class HarvestAction {
 			return harvestBerries(world, pos, player);
 		}
 
+		// Before the crop path, which would replant over a plant that is not grown from a seed
+		// left in the ground, and would ask for its drops without the record they come from.
+		if (WholeHarvest.isReady(world, pos)) {
+			return harvestWhole(world, pos, player);
+		}
+		if (WholeHarvest.isReady(world, pos.above())) {
+			return harvestWhole(world, pos.above(), player);
+		}
+
 		return harvestCrop(world, pos, player, offHand);
+	}
+
+	/**
+	 * Breaks a whole-harvest crop and drops what it holds.
+	 *
+	 * <p>The drops are taken with the block entity in hand, which is where a plant like this keeps
+	 * what it grew; asking for them without it is how a whole plant pays out as a single seed. The
+	 * break plays the block's own sound, so there is no crop sound over the top of it.
+	 */
+	private static boolean harvestWhole(Level world, BlockPos pos, Player player) {
+		if (!(world instanceof ServerLevel)) {
+			return false;
+		}
+
+		BlockState state = world.getBlockState(pos);
+		BlockEntity entity = state.hasBlockEntity() ? world.getBlockEntity(pos) : null;
+
+		Block.dropResources(state, world, pos, entity, player, player.getMainHandItem());
+
+		return world.destroyBlock(pos, false, player, DESTROY_UPDATE_LIMIT);
 	}
 
 	private static boolean harvestBerries(Level world, BlockPos pos, Player player) {

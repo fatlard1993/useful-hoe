@@ -13,6 +13,7 @@ A **server-side** Minecraft Fabric mod that makes hoes actually useful! Till, pl
 - **Auto-Harvest** - Harvest mature crops with automatic replanting
 - **Sweet Berry Harvesting** - Pick berries without breaking the bush
 - **Vertical Crop Harvesting** - Sugar cane, bamboo, cactus, and kelp - harvest all above base
+- **Whole-Plant Crops** - Modded plants that are taken whole rather than picked and replanted
 - **Fortune Support** - Fortune enchantment on hoe increases crop drops
 - **Visual Preview** - Colored particles show affected area when holding a hoe
 - **Reach Enchantment** - New enchantment to increase hoe area (5 levels)
@@ -63,6 +64,17 @@ What counts is the block tag `#useful-hoe:rain_grown`: vanilla crops (`#minecraf
 cane, bamboo, sweet berry bushes and cocoa. Another mod adds its own crops by shipping a tag file,
 with no dependency on this one.
 
+## Whole-Plant Crops
+
+Some modded crops are a plant rather than a row: one block holds the whole thing, breaking it is
+the harvest, and there is no seed to put back. Those are taken whole - drops and all, nothing
+replanted - instead of being harvested and re-sown the way a wheat row is.
+
+What counts is the block tag `#useful-hoe:harvested_whole`, which nothing vanilla is in; a mod adds
+its own by shipping a tag file, again with no dependency on this one. Whether one is ready is asked
+of the block itself, by the one question vanilla lets any block answer about its own growth: a crop
+that bone meal would still bring on is left standing, and one it would not is taken.
+
 ## Durability Cost
 
 Area actions cost **1 base + 1 per affected block** durability (configurable). Creative mode does not consume durability.
@@ -91,6 +103,7 @@ restart.
 ## With Other Mods
 
 - **[Dirt Slab](https://github.com/fatlard1993/dirt-slab)** - The area tills dirt, grass, path and coarse dirt slabs the same way a single right-click on one does
+- **[Hemp Craft](https://github.com/fatlard1993/hemp-craft)** - A hemp plant is one of those whole-plant crops: the sweep takes the ones that are ripe or gone to seed, root and all, and leaves the ones still growing
 - **[Village Quests](https://github.com/fatlard1993/village-quests)** - A farmer takes apprentices: five lessons on the Reach enchantment, the off-hand, replanting and Fortune, berries and column crops, and what the wide swing costs a hoe, plus a sixth on the emerald hoe when Emerald Tools is installed. Finishing gets you sixteen bone meal
 
 ## Development

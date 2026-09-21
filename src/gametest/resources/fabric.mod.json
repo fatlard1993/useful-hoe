@@ -1,0 +1,18 @@
+{
+	"schemaVersion": 1,
+	"id": "useful-hoe-gametest",
+	"version": "1.0.0",
+	"name": "Useful Hoe smoke test",
+	"description": "Loads the mod, joins a world, and fails if anything on the way threw.",
+	"license": "MIT",
+	"environment": "*",
+	"entrypoints": {
+		"fabric-client-gametest": [
+			"com.justfatlard.usefulhoe.gametest.SmokeTest"
+		]
+	},
+	"depends": {
+		"useful-hoe": "*",
+		"fabric-client-gametest-api-v1": "*"
+	}
+}
