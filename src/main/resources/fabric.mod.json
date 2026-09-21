@@ -7,7 +7,11 @@
 	"authors": [
 		"justfatlard"
 	],
-	"contact": {},
+	"contact": {
+		"homepage": "https://github.com/fatlard1993/useful-hoe",
+		"sources": "https://github.com/fatlard1993/useful-hoe",
+		"issues": "https://github.com/fatlard1993/useful-hoe/issues"
+	},
 	"license": "MIT",
 	"icon": "assets/useful-hoe/icon.png",
 	"environment": "*",
