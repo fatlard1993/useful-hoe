@@ -5,17 +5,24 @@
 	],
 	"versions": {
 		"1.2.0": [
-			"Reach can be had in survival at last: it comes off the enchanting table, turns up in loot and in trades, and the farmer's first lesson now starts from a plain hoe and sets the book down beside it.",
-			"A modded crop that is a whole plant rather than a row, hemp among them, is taken root and all instead of picked and replanted, and the ones still growing are left standing."
+			"Reach can be had in survival: off the enchanting table, in loot, and in trades.",
+			"The farmer's first lesson starts from a plain hoe and sets the book down beside it.",
+			"A modded crop that is a whole plant rather than a row, hemp among them, is taken root and all.",
+			"The ones still growing are left standing."
 		],
 		"1.1.1": [
-			"Crops standing out in the rain get extra growth rolls, and nothing under a roof is affected. The settings moved to their own page in Pandorical's menu."
+			"Crops standing out in the rain get extra growth rolls; nothing under a roof is affected.",
+			"The settings moved to their own page in Pandorical's menu."
 		],
 		"1.1.0": [
-			"A farmer villager who teaches what the hoe is actually for, lesson by lesson. Tilling clears the grass standing where the farmland is about to be, and works on Dirt Slab's half-height ground."
+			"A farmer villager who teaches what the hoe is actually for, lesson by lesson.",
+			"Tilling clears the grass standing where the farmland is about to be.",
+			"It works on Dirt Slab's half-height ground."
 		],
 		"1.0.0": [
-			"The first release: staged area tilling, planting, bonemealing and harvesting, sweet berries picked without breaking the bush, tall crops cut above the base, Fortune respected, and particles showing what your hoe will touch."
+			"Staged area tilling, planting, bonemealing and harvesting.",
+			"Sweet berries picked without breaking the bush, and tall crops cut above the base.",
+			"Fortune respected, and particles showing what your hoe will touch."
 		]
 	}
 }
