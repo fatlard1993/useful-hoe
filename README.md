@@ -55,25 +55,15 @@ Hold **Sneak** to use vanilla single-block behavior.
 
 ## Rain Growth
 
-A crop that can see the sky while it rains gets extra growth rolls each time the game random-ticks
-it (one by default). Each extra roll is the crop's own random tick, so light, moisture and spacing
-still decide whether it grows: rain makes the roll come round more often, it does not make a crop
-in the dark grow. Snow does not count.
+A crop that can see the sky while it rains gets extra growth rolls each time the game random-ticks it (one by default). Each extra roll is the crop's own random tick, so light, moisture and spacing still decide whether it grows: rain makes the roll come round more often, it does not make a crop in the dark grow. Snow does not count.
 
-What counts is the block tag `#useful-hoe:rain_grown`: vanilla crops (`#minecraft:crops`), sugar
-cane, bamboo, sweet berry bushes and cocoa. Another mod adds its own crops by shipping a tag file,
-with no dependency on this one.
+What counts is the block tag `#useful-hoe:rain_grown`: vanilla crops (`#minecraft:crops`), sugar cane, bamboo, sweet berry bushes and cocoa. Another mod adds its own crops by shipping a tag file, with no dependency on this one.
 
 ## Whole-Plant Crops
 
-Some modded crops are a plant rather than a row: one block holds the whole thing, breaking it is
-the harvest, and there is no seed to put back. Those are taken whole - drops and all, nothing
-replanted - instead of being harvested and re-sown the way a wheat row is.
+Some modded crops are a plant rather than a row: one block holds the whole thing, breaking it is the harvest, and there is no seed to put back. Those are taken whole - drops and all, nothing replanted - instead of being harvested and re-sown the way a wheat row is.
 
-What counts is the block tag `#useful-hoe:harvested_whole`, which nothing vanilla is in; a mod adds
-its own by shipping a tag file, again with no dependency on this one. Whether one is ready is asked
-of the block itself, by the one question vanilla lets any block answer about its own growth: a crop
-that bone meal would still bring on is left standing, and one it would not is taken.
+What counts is the block tag `#useful-hoe:harvested_whole`, which nothing vanilla is in; a mod adds its own by shipping a tag file, again with no dependency on this one. Whether one is ready is asked of the block itself, by the one question vanilla lets any block answer about its own growth: a crop that bone meal would still bring on is left standing, and one it would not is taken.
 
 ## Durability Cost
 
@@ -81,10 +71,7 @@ Area actions cost **1 base + 1 per affected block** durability (configurable). C
 
 ## Configuration
 
-A config file is created at `config/useful-hoe.json` on first run. With Pandorical installed, the
-switches, the durability costs and the rain growth settings are also on the Useful Hoe page of the
-mod menu, for ops, and a change there takes effect at once; a change to the file needs a server
-restart.
+A config file is created at `config/useful-hoe.json` on first run. With Pandorical installed, the switches, the durability costs and the rain growth settings are also on the Useful Hoe page of the mod menu, for ops, and a change there takes effect at once; a change to the file needs a server restart.
 
 | Field | Default | Description |
 |-------|---------|-------------|
