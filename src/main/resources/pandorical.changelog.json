@@ -4,6 +4,9 @@
 		"It runs on the server, so a vanilla client needs nothing."
 	],
 	"versions": {
+		"1.2.1": [
+			"Release notes rewritten to read plainly; nothing in play changes."
+		],
 		"1.2.0": [
 			"Reach can be had in survival: off the enchanting table, in loot, and in trades.",
 			"The farmer's first lesson starts from a plain hoe and sets the book down beside it.",
