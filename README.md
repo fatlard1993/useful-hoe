@@ -16,7 +16,7 @@ A **server-side** Minecraft Fabric mod that makes hoes actually useful! Till, pl
 - **Whole-Plant Crops** - Modded plants that are taken whole rather than picked and replanted
 - **Fortune Support** - Fortune enchantment on hoe increases crop drops
 - **Visual Preview** - Colored particles show affected area when holding a hoe
-- **Reach Enchantment** - New enchantment to increase hoe area (5 levels)
+- **Reach Enchantment** - New enchantment to increase hoe area (5 levels), from the enchanting table, librarian trades and loot chests
 - **Rain Growth** - Crops standing out in the rain get extra growth rolls; nothing under a roof is affected
 - **Fully Configurable** - JSON config for area sizes, durability costs, action toggles and rain growth
 
