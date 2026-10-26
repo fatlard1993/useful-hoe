@@ -36,5 +36,12 @@
 	},
 	"mixins": [
 		"useful-hoe.mixins.json"
-	]
+	],
+	"custom": {
+		"modmenu": {
+			"links": {
+				"modmenu.donate": "https://github.com/sponsors/fatlard1993"
+			}
+		}
+	}
 }
