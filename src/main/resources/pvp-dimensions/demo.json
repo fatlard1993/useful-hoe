@@ -1,0 +1,39 @@
+{
+  "demo": {
+    "name": "Useful Hoe",
+    "icon": "minecraft:diamond_hoe",
+    "about": [
+      "Hoes that farm a whole field at once: till, plant, bone meal and harvest a wide patch with a single click, and the Reach enchantment makes the patch bigger.",
+      "Right-click the grass to till a field, then click again with seeds in your off hand to plant it, bone meal in your off hand to grow it, and once more to harvest and replant."
+    ]
+  },
+  "pvp_preset": 1,
+  "needs": ["useful-hoe"],
+  "preset": {
+    "name": "Useful Hoe",
+    "icon": "minecraft:diamond_hoe",
+    "pvp": false,
+    "game_mode": "survival",
+    "entry_kit": [
+      {"slot": 0, "item": {"id": "minecraft:diamond_hoe", "count": 1, "components": {"minecraft:enchantments": {"useful-hoe:reach": 4, "minecraft:unbreaking": 3}}}},
+      {"slot": 1, "item": {"id": "minecraft:iron_hoe", "count": 1, "components": {"minecraft:enchantments": {"useful-hoe:reach": 2}}}},
+      {"slot": 40, "item": {"id": "minecraft:wheat_seeds", "count": 64}},
+      {"slot": 2, "item": {"id": "minecraft:carrot", "count": 64}},
+      {"slot": 3, "item": {"id": "minecraft:bone_meal", "count": 64}},
+      {"slot": 4, "item": {"id": "minecraft:bone_meal", "count": 64}},
+      {"slot": 5, "item": {"id": "minecraft:water_bucket", "count": 1}},
+      {"slot": 6, "item": {"id": "minecraft:water_bucket", "count": 1}},
+      {"slot": 7, "item": {"id": "minecraft:wheat_seeds", "count": 64}},
+      {"slot": 9, "item": {"id": "minecraft:bone_meal", "count": 64}}
+    ],
+    "respawn_kit": "entry",
+    "goal": "time",
+    "mobs": "off",
+    "life": 15,
+    "size": 2,
+    "world": "overworld",
+    "shape": "flat",
+    "biome": "minecraft:plains",
+    "weather": "clear"
+  }
+}
