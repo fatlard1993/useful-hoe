@@ -11,6 +11,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundLevelParticlesPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -20,11 +24,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.ClipContext;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Server-side area preview rendering using particles.
- * Sends particle packets to players holding hoes.
+ * Sends particle packets to players holding hoes, one bundle per preview.
  */
 public final class ServerAreaRenderer {
 
@@ -34,6 +39,9 @@ public final class ServerAreaRenderer {
 	private static final int COLOR_PLANT = 0xFF33CC33;    // Green
 	private static final int COLOR_BONEMEAL = 0xFFFFFFFF; // White
 	private static final int COLOR_HARVEST = 0xFFFFD700;  // Gold
+
+	/** Under vanilla's bundle limit of 4096 packets. */
+	private static final int MAX_BUNDLE = 4000;
 
 	private ServerAreaRenderer() {}
 
@@ -83,11 +91,18 @@ public final class ServerAreaRenderer {
 		);
 
 		ItemStack offHand = player.getOffhandItem();
+		List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>();
 		for (BlockPos pos : positions) {
 			HoeAction action = HoeActionHandler.getFirstApplicableAction(world, pos, offHand);
 			if (action != null) {
-				spawnCornerParticles(world, player, pos, getColorForAction(action));
+				addCornerParticles(packets, pos, getColorForAction(action));
 			}
+		}
+
+		for (int from = 0; from < packets.size(); from += MAX_BUNDLE) {
+			List<Packet<? super ClientGamePacketListener>> part =
+				packets.subList(from, Math.min(packets.size(), from + MAX_BUNDLE));
+			player.connection.send(new ClientboundBundlePacket(new ArrayList<>(part)));
 		}
 	}
 
@@ -116,9 +131,9 @@ public final class ServerAreaRenderer {
 	}
 
 	/**
-	 * Spawns particles at block corners, visible only to the specific player.
+	 * Particles at block corners, for the one player whose preview it is.
 	 */
-	private static void spawnCornerParticles(ServerLevel world, ServerPlayer player, BlockPos pos, int color) {
+	private static void addCornerParticles(List<Packet<? super ClientGamePacketListener>> packets, BlockPos pos, int color) {
 		DustParticleOptions particle = new DustParticleOptions(color, 0.5f);
 
 		double y = pos.getY() + 1.01;
@@ -126,14 +141,14 @@ public final class ServerAreaRenderer {
 		double z = pos.getZ();
 		double inset = 0.1;
 
-		// Signature: player, particle, force, important, x, y, z, count, deltaX, deltaY, deltaZ, speed
-		world.sendParticles(player, particle, true, false,
-			x + inset, y, z + inset, 1, 0, 0, 0, 0);
-		world.sendParticles(player, particle, true, false,
-			x + 1 - inset, y, z + inset, 1, 0, 0, 0, 0);
-		world.sendParticles(player, particle, true, false,
-			x + inset, y, z + 1 - inset, 1, 0, 0, 0, 0);
-		world.sendParticles(player, particle, true, false,
-			x + 1 - inset, y, z + 1 - inset, 1, 0, 0, 0, 0);
+		packets.add(corner(particle, x + inset, y, z + inset));
+		packets.add(corner(particle, x + 1 - inset, y, z + inset));
+		packets.add(corner(particle, x + inset, y, z + 1 - inset));
+		packets.add(corner(particle, x + 1 - inset, y, z + 1 - inset));
+	}
+
+	private static ClientboundLevelParticlesPacket corner(DustParticleOptions particle, double x, double y, double z) {
+		// Signature: particle, overrideLimiter, alwaysShow, x, y, z, xDist, yDist, zDist, speed, count
+		return new ClientboundLevelParticlesPacket(particle, true, false, x, y, z, 0, 0, 0, 0, 1);
 	}
 }
