@@ -4,6 +4,9 @@
 		"It runs on the server, so a vanilla client needs nothing."
 	],
 	"versions": {
+		"1.2.5": [
+			"The hoe's area preview goes out as one bundle per redraw instead of hundreds of separate particle packets."
+		],
 		"1.2.4": [
 			"A demo to play in PvP Dimensions' onboarding."
 		],
