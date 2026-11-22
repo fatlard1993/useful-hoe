@@ -3,7 +3,7 @@
 	"id": "useful-hoe",
 	"version": "${version}",
 	"name": "Useful Hoe",
-	"description": "Server-side area farming - tilling, planting, bonemealing, and harvesting. Works with vanilla clients.",
+	"description": "Area farming with a hoe, server side, for vanilla clients too",
 	"authors": [
 		"justfatlard"
 	],
