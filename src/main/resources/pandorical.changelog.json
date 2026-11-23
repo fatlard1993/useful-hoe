@@ -4,6 +4,9 @@
 		"It runs on the server, so a vanilla client needs nothing."
 	],
 	"versions": {
+		"1.2.7": [
+			"Describes itself in one short line of what it adds."
+		],
 		"1.2.6": [
 			"Reach is no longer tagged treasure, matching the table that already offers it."
 		],
