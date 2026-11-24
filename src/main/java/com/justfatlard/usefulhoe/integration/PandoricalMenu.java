@@ -22,8 +22,13 @@ public final class PandoricalMenu {
 			group.toggle("preview", "Particle preview", true).backedBy(p -> c().particlePreviewEnabled, (p, v) -> { c().particlePreviewEnabled = v; ModConfig.save(); });
 			group.number("durabilityBase", "Durability per use", 0, 10, 1, 1).backedBy(p -> c().durabilityBaseCost, (p, v) -> { c().durabilityBaseCost = v; ModConfig.save(); });
 			group.number("durabilityPerBlock", "Durability per block", 0, 10, 1, 1).backedBy(p -> c().durabilityPerBlock, (p, v) -> { c().durabilityPerBlock = v; ModConfig.save(); });
-			// Rain growth lives in Pandorical now, as a rule of the world; asked on, as it always was here
-			justfatlard.pandorical.api.PandoricalApi.rules().rainGrowth(true);
+			// Rain growth lives in Pandorical now, as a rule of the world; asked on, as it always was here.
+			// A Pandorical from before the rules has no such call, and is left to run without it.
+			try {
+				justfatlard.pandorical.api.PandoricalApi.rules().rainGrowth(true);
+			} catch (LinkageError older) {
+				UsefulHoe.LOGGER.warn("[{}] Pandorical is older than 15.37.0, so rain does not grow crops", UsefulHoe.MOD_ID);
+			}
 		}
 
 		private static ModConfig c() { return ModConfig.get(); }

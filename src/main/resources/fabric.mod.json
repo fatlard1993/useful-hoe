@@ -27,7 +27,7 @@
 		"java": ">=25"
 	},
 	"breaks": {
-		"pandorical": "<15.37.0"
+		"pandorical": "<15.0.0"
 	},
 	"suggests": {
 		"village-quests-justfatlard": "*",
