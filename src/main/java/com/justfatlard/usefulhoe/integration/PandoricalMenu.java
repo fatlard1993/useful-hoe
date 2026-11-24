@@ -22,8 +22,8 @@ public final class PandoricalMenu {
 			group.toggle("preview", "Particle preview", true).backedBy(p -> c().particlePreviewEnabled, (p, v) -> { c().particlePreviewEnabled = v; ModConfig.save(); });
 			group.number("durabilityBase", "Durability per use", 0, 10, 1, 1).backedBy(p -> c().durabilityBaseCost, (p, v) -> { c().durabilityBaseCost = v; ModConfig.save(); });
 			group.number("durabilityPerBlock", "Durability per block", 0, 10, 1, 1).backedBy(p -> c().durabilityPerBlock, (p, v) -> { c().durabilityPerBlock = v; ModConfig.save(); });
-			group.toggle("rainGrowth", "Rain grows crops", true).backedBy(p -> c().rainGrowthEnabled, (p, v) -> { c().rainGrowthEnabled = v; ModConfig.save(); });
-			group.number("rainGrowthBonus", "Rain growth bonus ticks", 0, 8, 1, 1).backedBy(p -> c().rainGrowthBonusTicks, (p, v) -> { c().rainGrowthBonusTicks = v; ModConfig.save(); });
+			// Rain growth lives in Pandorical now, as a rule of the world; asked on, as it always was here
+			justfatlard.pandorical.api.PandoricalApi.rules().rainGrowth(true);
 		}
 
 		private static ModConfig c() { return ModConfig.get(); }

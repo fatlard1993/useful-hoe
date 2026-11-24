@@ -17,8 +17,8 @@ A **server-side** Minecraft Fabric mod that makes hoes actually useful! Till, pl
 - **Fortune Support** - Fortune enchantment on hoe increases crop drops
 - **Visual Preview** - Colored particles show affected area when holding a hoe
 - **Reach Enchantment** - New enchantment to increase hoe area (5 levels), from the enchanting table, librarian trades and loot chests
-- **Rain Growth** - Crops standing out in the rain get extra growth rolls; nothing under a roof is affected
-- **Fully Configurable** - JSON config for area sizes, durability costs, action toggles and rain growth
+- **Rain Growth** - With Pandorical installed, crops standing out in the rain get extra growth rolls; nothing under a roof is affected
+- **Fully Configurable** - JSON config for area sizes, durability costs and action toggles
 
 ## Area Sizes by Reach Level
 
@@ -57,7 +57,7 @@ Hold **Sneak** to use vanilla single-block behavior.
 
 A crop that can see the sky while it rains gets extra growth rolls each time the game random-ticks it (one by default). Each extra roll is the crop's own random tick, so light, moisture and spacing still decide whether it grows: rain makes the roll come round more often, it does not make a crop in the dark grow. Snow does not count.
 
-What counts is the block tag `#useful-hoe:rain_grown`: vanilla crops (`#minecraft:crops`), sugar cane, bamboo, sweet berry bushes and cocoa. Another mod adds its own crops by shipping a tag file, with no dependency on this one.
+This is now one of Pandorical's rules of the world, so it needs Pandorical on the server; Useful Hoe asks for it on, and an op can turn it and its number of extra rolls on Pandorical's page of the mod menu. What counts is the block tag `#pandorical:rain_grown`, which takes in `#useful-hoe:rain_grown`, so a mod that ships a tag file for either keeps working.
 
 ## Whole-Plant Crops
 
@@ -71,7 +71,7 @@ Area actions cost **1 base + 1 per affected block** durability (configurable). C
 
 ## Configuration
 
-A config file is created at `config/useful-hoe.json` on first run. With Pandorical installed, the switches, the durability costs and the rain growth settings are also on the Useful Hoe page of the mod menu, for ops, and a change there takes effect at once; a change to the file needs a server restart.
+A config file is created at `config/useful-hoe.json` on first run. With Pandorical installed, the switches and the durability costs are also on the Useful Hoe page of the mod menu, for ops, and a change there takes effect at once; a change to the file needs a server restart.
 
 | Field | Default | Description |
 |-------|---------|-------------|
@@ -84,8 +84,6 @@ A config file is created at `config/useful-hoe.json` on first run. With Pandoric
 | `plantEnabled` | `true` | Enable area planting |
 | `bonemealEnabled` | `true` | Enable area bonemealing |
 | `harvestEnabled` | `true` | Enable area harvesting |
-| `rainGrowthEnabled` | `true` | Crops standing in the rain get extra growth rolls |
-| `rainGrowthBonusTicks` | `1` | Extra growth rolls per random tick in the rain (0-8) |
 
 ## With Other Mods
 

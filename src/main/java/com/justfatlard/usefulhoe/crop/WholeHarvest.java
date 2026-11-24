@@ -20,8 +20,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * their own.
  *
  * <p>Which blocks these are is the block tag {@code #useful-hoe:harvested_whole}, so a mod joins in
- * by shipping a tag file and needs no dependency on this one, the same way
- * {@link RainGrowth#RAIN_GROWN} works.
+ * by shipping a tag file and needs no dependency on this one.
  *
  * <p>When one is ready is asked of the block itself, through the one question vanilla already lets
  * any block answer about its own growth: whether bone meal would still do something for it. A crop
